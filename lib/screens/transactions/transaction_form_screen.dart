@@ -208,6 +208,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                       decoration: const InputDecoration(
                         labelText: '金額',
                         prefixText: '¥ ',
+                        hintText: '0',
                       ),
                       style: const TextStyle(
                           fontSize: 22, fontWeight: FontWeight.w600),
@@ -316,10 +317,11 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
-                        initialValue: _fee > 0 ? _fee.toString() : '0',
+                        initialValue: _fee > 0 ? _fee.toString() : '',
                         decoration: const InputDecoration(
                           labelText: '振込手数料',
                           prefixText: '¥ ',
+                          hintText: '0',
                         ),
                         style: const TextStyle(fontSize: 17),
                         keyboardType: TextInputType.number,

@@ -103,6 +103,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
               controller: balanceCtrl,
               decoration: const InputDecoration(
                 labelText: '残高', prefixText: '¥ ',
+                hintText: '0',
               ),
               style: const TextStyle(fontSize: 17),
               keyboardType: TextInputType.number,
