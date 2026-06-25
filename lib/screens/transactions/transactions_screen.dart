@@ -89,7 +89,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            _filterChip(
+            _filterChip<app.TransactionType?>(
               label: _filterType != null
                   ? {
                       app.TransactionType.income: '収入',
@@ -98,30 +98,26 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     }[_filterType]!
                   : '種類',
               isSelected: _filterType != null,
-              onTap: () => _showFilterMenu<app.TransactionType?>(
-                items: [
-                  _filterMenuItem(null, 'すべて'),
-                  _filterMenuItem(app.TransactionType.income, '収入'),
-                  _filterMenuItem(app.TransactionType.expense, '支出'),
-                  _filterMenuItem(app.TransactionType.transfer, '振替'),
-                ],
-                onSelected: (v) => setState(() => _filterType = v),
-              ),
+              menuItems: [
+                _filterMenuItem(null, 'すべて'),
+                _filterMenuItem(app.TransactionType.income, '収入'),
+                _filterMenuItem(app.TransactionType.expense, '支出'),
+                _filterMenuItem(app.TransactionType.transfer, '振替'),
+              ],
+              onSelected: (v) => setState(() => _filterType = v),
             ),
             const SizedBox(width: 8),
-            _filterChip(
+            _filterChip<String?>(
               label: _filterMonth ?? '月',
               isSelected: _filterMonth != null,
-              onTap: () => _showFilterMenu<String?>(
-                items: [
-                  _filterMenuItem(null, 'すべて'),
-                  ...months.map((m) => _filterMenuItem(m, m)),
-                ],
-                onSelected: (v) => setState(() => _filterMonth = v),
-              ),
+              menuItems: [
+                _filterMenuItem(null, 'すべて'),
+                ...months.map((m) => _filterMenuItem(m, m)),
+              ],
+              onSelected: (v) => setState(() => _filterMonth = v),
             ),
             const SizedBox(width: 8),
-            _filterChip(
+            _filterChip<String?>(
               label: _filterPaymentMethod != null
                   ? paymentMethods
                           .where((pm) => pm.id == _filterPaymentMethod)
@@ -130,15 +126,13 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                       '支払方法'
                   : '支払方法',
               isSelected: _filterPaymentMethod != null,
-              onTap: () => _showFilterMenu<String?>(
-                items: [
-                  _filterMenuItem(null, 'すべて'),
-                  ...paymentMethods
-                      .map((pm) => _filterMenuItem(pm.id, pm.name)),
-                ],
-                onSelected: (v) =>
-                    setState(() => _filterPaymentMethod = v),
-              ),
+              menuItems: [
+                _filterMenuItem(null, 'すべて'),
+                ...paymentMethods
+                    .map((pm) => _filterMenuItem(pm.id, pm.name)),
+              ],
+              onSelected: (v) =>
+                  setState(() => _filterPaymentMethod = v),
             ),
           ],
         ),
@@ -146,52 +140,73 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     );
   }
 
-  Widget _filterChip({
+  Widget _filterChip<T>({
     required String label,
     required bool isSelected,
-    required VoidCallback onTap,
+    required List<PopupMenuItem<T>> menuItems,
+    required ValueChanged<T> onSelected,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 36,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? const Color(0xFF007AFF).withValues(alpha: 0.12)
-              : Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
+    return Builder(builder: (context) {
+      final theme = Theme.of(context);
+      final cardColor = theme.cardTheme.color ?? theme.cardColor;
+      final borderColor = theme.dividerColor;
+
+      return GestureDetector(
+        onTap: () async {
+          final box = context.findRenderObject() as RenderBox;
+          final offset = box.localToGlobal(Offset(0, box.size.height));
+          final result = await showMenu<T>(
+            context: context,
+            position: RelativeRect.fromLTRB(
+                offset.dx, offset.dy, offset.dx + box.size.width, 0),
+            items: menuItems,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
+          );
+          if (result is T) {
+            onSelected(result);
+          }
+        },
+        child: Container(
+          height: 36,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
             color: isSelected
-                ? const Color(0xFF007AFF)
-                : const Color(0xFFD1D1D6),
-          ),
-        ),
-        alignment: Alignment.center,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                color: isSelected
-                    ? const Color(0xFF007AFF)
-                    : null,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Icon(
-              Icons.keyboard_arrow_down,
-              size: 18,
+                ? const Color(0xFF007AFF).withValues(alpha: 0.12)
+                : cardColor,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
               color: isSelected
                   ? const Color(0xFF007AFF)
-                  : const Color(0xFF8E8E93),
+                  : borderColor,
             ),
-          ],
+          ),
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isSelected
+                      ? const Color(0xFF007AFF)
+                      : null,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                Icons.keyboard_arrow_down,
+                size: 18,
+                color: isSelected
+                    ? const Color(0xFF007AFF)
+                    : theme.textTheme.bodySmall?.color,
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   PopupMenuItem<T> _filterMenuItem<T>(T value, String label) {
@@ -202,21 +217,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     );
   }
 
-  void _showFilterMenu<T>({
-    required List<PopupMenuItem<T>> items,
-    required ValueChanged<T> onSelected,
-  }) async {
-    final renderBox = context.findRenderObject() as RenderBox;
-    final result = await showMenu<T>(
-      context: context,
-      position: RelativeRect.fromLTRB(0, 100, renderBox.size.width, 0),
-      items: items,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    );
-    if (result is T) {
-      onSelected(result);
-    }
-  }
 
   Widget _buildTransactionTile(
     app.Transaction tx,
