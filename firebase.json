@@ -1,0 +1,1 @@
+{"firestore":{"rules":"firestore.rules","indexes":"firestore.indexes.json"},"hosting":{"public":"build/web","ignore":["firebase-debug.log",".firebase/**"],"rewrites":[{"source":"**","destination":"/index.html"}]},"flutter":{"platforms":{"dart":{"lib/firebase_options.dart":{"projectId":"kakeibo-1f1d8","configurations":{"web":"1:411849937179:web:b1d2e4807197c978d183be"}}}}}}
