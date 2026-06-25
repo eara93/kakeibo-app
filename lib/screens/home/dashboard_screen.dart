@@ -92,7 +92,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final sectionTitles = {
       'assets': '資産概要',
-      'account_balances': '口座残高',
+      'account_balances': '資産残高',
       'monthly_summary': '月別サマリー',
       'yearly_summary': '年別サマリー',
       'expense_chart': '支出内訳',
@@ -181,7 +181,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return Card(
         child: Padding(
           padding: const EdgeInsets.all(20),
-          child: Text('口座が登録されていません',
+          child: Text('資産が登録されていません',
               style: TextStyle(fontSize: 15, color: Colors.grey[500])),
         ),
       );

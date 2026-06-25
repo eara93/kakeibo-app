@@ -79,11 +79,14 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         itemName: _itemName,
         amount: _amount,
         paymentMethodId:
-            _type == app.TransactionType.transfer ? '' : _paymentMethodId,
+            _type == app.TransactionType.expense ? _paymentMethodId : '',
         fromAccountId:
             _type == app.TransactionType.transfer ? _fromAccountId : '',
-        toAccountId:
-            _type == app.TransactionType.transfer ? _toAccountId : '',
+        toAccountId: _type == app.TransactionType.transfer
+            ? _toAccountId
+            : _type == app.TransactionType.income
+                ? _toAccountId
+                : '',
         fee: _type == app.TransactionType.transfer ? _fee : 0,
         createdAt: widget.transaction?.createdAt,
       );
@@ -220,7 +223,34 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    if (_type != app.TransactionType.transfer) ...[
+                    if (_type == app.TransactionType.income) ...[
+                      TextFormField(
+                        initialValue: _itemName,
+                        decoration:
+                            const InputDecoration(labelText: '品名・メモ'),
+                        style: const TextStyle(fontSize: 17),
+                        onSaved: (v) => _itemName = v ?? '',
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        initialValue:
+                            _accounts.any((a) => a.id == _toAccountId)
+                                ? _toAccountId
+                                : null,
+                        decoration:
+                            const InputDecoration(labelText: '受取先'),
+                        items: _accounts
+                            .map((a) => DropdownMenuItem(
+                                value: a.id, child: Text(a.name)))
+                            .toList(),
+                        onChanged: (v) =>
+                            setState(() => _toAccountId = v ?? ''),
+                        validator: (v) =>
+                            v == null || v.isEmpty ? '受取先を選択してください' : null,
+                      ),
+                    ],
+
+                    if (_type == app.TransactionType.expense) ...[
                       TextFormField(
                         initialValue: _itemName,
                         decoration:
@@ -257,7 +287,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                                 ? _fromAccountId
                                 : null,
                         decoration:
-                            const InputDecoration(labelText: '振替元口座'),
+                            const InputDecoration(labelText: '振替元資産'),
                         items: _accounts
                             .map((a) => DropdownMenuItem(
                                 value: a.id, child: Text(a.name)))
@@ -274,7 +304,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                                 ? _toAccountId
                                 : null,
                         decoration:
-                            const InputDecoration(labelText: '振替先口座'),
+                            const InputDecoration(labelText: '振替先資産'),
                         items: _accounts
                             .map((a) => DropdownMenuItem(
                                 value: a.id, child: Text(a.name)))

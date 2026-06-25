@@ -165,7 +165,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
               initialValue: accounts.any((a) => a.id == _linkedAccountId)
                   ? _linkedAccountId
                   : null,
-              decoration: const InputDecoration(labelText: '紐付け口座'),
+              decoration: const InputDecoration(labelText: '紐付け資産'),
               items: accounts
                   .map((a) =>
                       DropdownMenuItem(value: a.id, child: Text(a.name)))

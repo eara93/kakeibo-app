@@ -263,7 +263,7 @@ class _SettlementScreenState extends State<SettlementScreen> {
       builder: (ctx) => AlertDialog(
         title: const Text('精算確認'),
         content: Text(
-          '${transactions.length}件の取引\n合計 ¥${_fmt.format(total)}\n\n精算して引落口座の残高を更新しますか？',
+          '${transactions.length}件の取引\n合計 ¥${_fmt.format(total)}\n\n精算して引落先の資産を更新しますか？',
         ),
         actions: [
           TextButton(

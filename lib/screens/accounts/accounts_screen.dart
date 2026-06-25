@@ -219,7 +219,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             controller: _nameController,
                             decoration: const InputDecoration(
                               labelText: '資産名',
-                              hintText: '例: 銀行口座、PayPay',
+                              hintText: '例: 銀行、PayPay',
                             ),
                             style: const TextStyle(fontSize: 17),
                             textInputAction: TextInputAction.next,

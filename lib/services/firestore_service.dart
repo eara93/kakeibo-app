@@ -25,7 +25,7 @@ class FirestoreService {
   DocumentReference get _settingsRef =>
       _db.collection('users').doc(_uid);
 
-  // ===== 口座 =====
+  // ===== 資産 =====
 
   Stream<List<Account>> watchAccounts() {
     return _accountsRef.orderBy('sortOrder').snapshots().map((snapshot) =>
@@ -178,16 +178,21 @@ class FirestoreService {
           'balance': FieldValue.increment(transaction.amount),
         });
       }
+    } else if (transaction.type == app.TransactionType.income) {
+      // 収入: 受取先の資産に直接加算
+      if (transaction.toAccountId.isNotEmpty) {
+        batch.update(_accountsRef.doc(transaction.toAccountId), {
+          'balance': FieldValue.increment(transaction.amount),
+        });
+      }
     } else if (!isProvisional) {
+      // 支出: 支払方法の紐付け資産から減算
       final pm = paymentMethods
           .where((m) => m.id == transaction.paymentMethodId)
           .firstOrNull;
       if (pm != null && pm.linkedAccountId.isNotEmpty) {
-        final delta = transaction.type == app.TransactionType.income
-            ? transaction.amount
-            : -transaction.amount;
         batch.update(_accountsRef.doc(pm.linkedAccountId), {
-          'balance': FieldValue.increment(delta),
+          'balance': FieldValue.increment(-transaction.amount),
         });
       }
     }
@@ -247,16 +252,19 @@ class FirestoreService {
           'balance': FieldValue.increment(-tx.amount),
         });
       }
+    } else if (tx.type == app.TransactionType.income) {
+      if (tx.toAccountId.isNotEmpty) {
+        batch.update(_accountsRef.doc(tx.toAccountId), {
+          'balance': FieldValue.increment(-tx.amount),
+        });
+      }
     } else if (!tx.isProvisional || tx.settled) {
       final pm = paymentMethods
           .where((m) => m.id == tx.paymentMethodId)
           .firstOrNull;
       if (pm != null && pm.linkedAccountId.isNotEmpty) {
-        final delta = tx.type == app.TransactionType.income
-            ? -tx.amount
-            : tx.amount;
         batch.update(_accountsRef.doc(pm.linkedAccountId), {
-          'balance': FieldValue.increment(delta),
+          'balance': FieldValue.increment(tx.amount),
         });
       }
     }
@@ -275,16 +283,19 @@ class FirestoreService {
           'balance': FieldValue.increment(tx.amount),
         });
       }
+    } else if (tx.type == app.TransactionType.income) {
+      if (tx.toAccountId.isNotEmpty) {
+        batch.update(_accountsRef.doc(tx.toAccountId), {
+          'balance': FieldValue.increment(tx.amount),
+        });
+      }
     } else if (!tx.isProvisional) {
       final pm = paymentMethods
           .where((m) => m.id == tx.paymentMethodId)
           .firstOrNull;
       if (pm != null && pm.linkedAccountId.isNotEmpty) {
-        final delta = tx.type == app.TransactionType.income
-            ? tx.amount
-            : -tx.amount;
         batch.update(_accountsRef.doc(pm.linkedAccountId), {
-          'balance': FieldValue.increment(delta),
+          'balance': FieldValue.increment(-tx.amount),
         });
       }
     }
