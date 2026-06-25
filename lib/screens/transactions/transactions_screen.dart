@@ -177,7 +177,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 fontSize: 14,
                 color: isSelected
                     ? const Color(0xFF007AFF)
-                    : const Color(0xFF1C1C1E),
+                    : null,
               ),
             ),
             const SizedBox(width: 4),
@@ -299,7 +299,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                       fontWeight: FontWeight.w600,
                       color: tx.type == app.TransactionType.income
                           ? const Color(0xFF34C759)
-                          : const Color(0xFF1C1C1E),
+                          : null,
                     ),
                   ),
                   if (tx.isProvisional)

@@ -437,8 +437,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: DropdownButton<String>(
                 value: _chartMonth,
                 underline: const SizedBox(),
-                style: const TextStyle(
-                    fontSize: 15, color: Color(0xFF1C1C1E)),
                 items: sortedMonths
                     .map((m) => DropdownMenuItem(value: m, child: Text(m)))
                     .toList(),
@@ -596,7 +594,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               fontWeight: FontWeight.w600,
               color: tx.type == app.TransactionType.income
                   ? const Color(0xFF34C759)
-                  : const Color(0xFF1C1C1E),
+                  : null,
             ),
           ),
         ],

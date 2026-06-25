@@ -56,9 +56,13 @@ class KakeiboAppState extends State<KakeiboApp> {
       colorScheme: ColorScheme.fromSeed(
         seedColor: const Color(0xFF007AFF),
         brightness: brightness,
+        surfaceContainerHighest: cardColor,
+        surfaceContainerHigh: cardColor,
+        surfaceContainer: cardColor,
       ),
       useMaterial3: true,
       scaffoldBackgroundColor: bg,
+      canvasColor: cardColor,
       cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -162,7 +166,16 @@ class KakeiboAppState extends State<KakeiboApp> {
       dividerTheme: DividerThemeData(
         thickness: 0.5, color: divider, space: 0,
       ),
+      dropdownMenuTheme: DropdownMenuThemeData(
+        textStyle: TextStyle(fontSize: 15, color: textPrimary),
+        menuStyle: MenuStyle(
+          backgroundColor: WidgetStatePropertyAll(cardColor),
+          surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+        ),
+      ),
       popupMenuTheme: PopupMenuThemeData(
+        color: cardColor,
+        surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       dialogTheme: DialogThemeData(

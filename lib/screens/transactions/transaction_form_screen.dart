@@ -169,36 +169,42 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                     // 日付
                     GestureDetector(
                       onTap: _pickDate,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 14),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFFD1D1D6)),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('日付',
-                                    style: TextStyle(
-                                        fontSize: 13,
-                                        color: Color(0xFF8E8E93))),
-                                const SizedBox(height: 4),
-                                Text(
-                                  DateFormat('yyyy年M月d日').format(_date),
-                                  style: const TextStyle(fontSize: 17),
-                                ),
-                              ],
+                      child: Builder(builder: (context) {
+                        final theme = Theme.of(context);
+                        final inputTheme = theme.inputDecorationTheme;
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 14),
+                          decoration: BoxDecoration(
+                            color: inputTheme.fillColor,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: inputTheme.enabledBorder?.borderSide.color ??
+                                  theme.dividerColor,
                             ),
-                            const Icon(Icons.calendar_today,
-                                size: 20, color: Color(0xFF8E8E93)),
-                          ],
-                        ),
-                      ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('日付',
+                                      style: theme.textTheme.bodySmall),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    DateFormat('yyyy年M月d日').format(_date),
+                                    style: theme.textTheme.bodyLarge,
+                                  ),
+                                ],
+                              ),
+                              Icon(Icons.calendar_today,
+                                  size: 20,
+                                  color: theme.textTheme.bodySmall?.color),
+                            ],
+                          ),
+                        );
+                      }),
                     ),
                     const SizedBox(height: 16),
 
@@ -208,8 +214,6 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                           ? _category
                           : null,
                       decoration: const InputDecoration(labelText: 'カテゴリ'),
-                      style: const TextStyle(
-                          fontSize: 17, color: Color(0xFF1C1C1E)),
                       items: _categories
                           .map((c) => DropdownMenuItem(
                               value: c.name, child: Text(c.name)))
@@ -257,8 +261,6 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                                 : null,
                         decoration:
                             const InputDecoration(labelText: '支払方法'),
-                        style: const TextStyle(
-                            fontSize: 17, color: Color(0xFF1C1C1E)),
                         items: _paymentMethods
                             .map((m) => DropdownMenuItem(
                                   value: m.id,
@@ -281,8 +283,6 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                                 : null,
                         decoration:
                             const InputDecoration(labelText: '振替元口座'),
-                        style: const TextStyle(
-                            fontSize: 17, color: Color(0xFF1C1C1E)),
                         items: _accounts
                             .map((a) => DropdownMenuItem(
                                 value: a.id, child: Text(a.name)))
@@ -300,8 +300,6 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                                 : null,
                         decoration:
                             const InputDecoration(labelText: '振替先口座'),
-                        style: const TextStyle(
-                            fontSize: 17, color: Color(0xFF1C1C1E)),
                         items: _accounts
                             .map((a) => DropdownMenuItem(
                                 value: a.id, child: Text(a.name)))

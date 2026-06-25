@@ -14,7 +14,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
   final _service = FirestoreService();
   final _fmt = NumberFormat('#,###', 'ja_JP');
   final _nameController = TextEditingController();
-  final _balanceController = TextEditingController(text: '0');
+  final _balanceController = TextEditingController();
   bool _adding = false;
 
   @override
@@ -200,6 +200,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             controller: _balanceController,
                             decoration: const InputDecoration(
                               labelText: '初期残高', prefixText: '¥ ',
+                              hintText: '0',
                             ),
                             style: const TextStyle(fontSize: 17),
                             keyboardType: TextInputType.number,

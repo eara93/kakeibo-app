@@ -144,7 +144,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             DropdownButtonFormField<PaymentMethodType>(
               initialValue: _type,
               decoration: const InputDecoration(labelText: '種類'),
-              style: const TextStyle(fontSize: 17, color: Color(0xFF1C1C1E)),
               items: const [
                 DropdownMenuItem(
                     value: PaymentMethodType.cash,
@@ -164,7 +163,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                   ? _linkedAccountId
                   : null,
               decoration: const InputDecoration(labelText: '紐付け口座'),
-              style: const TextStyle(fontSize: 17, color: Color(0xFF1C1C1E)),
               items: accounts
                   .map((a) =>
                       DropdownMenuItem(value: a.id, child: Text(a.name)))
@@ -207,8 +205,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                     child: DropdownButtonFormField<int>(
                       initialValue: _paymentMonthOffset,
                       decoration: const InputDecoration(labelText: '引落月'),
-                      style: const TextStyle(
-                          fontSize: 17, color: Color(0xFF1C1C1E)),
                       items: const [
                         DropdownMenuItem(value: 1, child: Text('翌月')),
                         DropdownMenuItem(value: 2, child: Text('翌々月')),
