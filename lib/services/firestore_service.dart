@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/account.dart';
 import '../models/category.dart';
 import '../models/payment_method.dart';
+import '../models/favorite.dart';
 import '../models/transaction.dart' as app;
 
 class FirestoreService {
@@ -18,6 +19,9 @@ class FirestoreService {
 
   CollectionReference get _paymentMethodsRef =>
       _db.collection('users').doc(_uid).collection('paymentMethods');
+
+  CollectionReference get _favoritesRef =>
+      _db.collection('users').doc(_uid).collection('favorites');
 
   CollectionReference get _transactionsRef =>
       _db.collection('users').doc(_uid).collection('transactions');
@@ -347,6 +351,24 @@ class FirestoreService {
     await _settingsRef.set({
       'dashboardOrder': order,
     }, SetOptions(merge: true));
+  }
+
+  // ===== お気に入り =====
+
+  Stream<List<Favorite>> watchFavorites() {
+    return _favoritesRef
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => Favorite.fromFirestore(doc)).toList());
+  }
+
+  Future<void> addFavorite(Favorite favorite) async {
+    await _favoritesRef.add(favorite.toFirestore());
+  }
+
+  Future<void> deleteFavorite(String id) async {
+    await _favoritesRef.doc(id).delete();
   }
 
   static const defaultDashboardOrder = [

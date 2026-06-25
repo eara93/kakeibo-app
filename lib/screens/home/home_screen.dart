@@ -5,6 +5,7 @@ import '../accounts/accounts_screen.dart';
 import '../payment_methods/payment_methods_screen.dart';
 import '../categories/categories_screen.dart';
 import '../settlement/settlement_screen.dart';
+import '../help/help_screen.dart';
 import 'dashboard_screen.dart';
 import '../../services/auth_service.dart';
 import '../../main.dart';
@@ -55,26 +56,41 @@ class _HomeScreenState extends State<HomeScreen> {
             tooltip: isDark ? 'ライトモード' : 'ダークモード',
             onPressed: () => appState?.toggleTheme(),
           ),
-          if (_selectedIndex == 1)
-            IconButton(
-              icon: const Icon(Icons.add_circle_outline),
-              iconSize: 26,
-              tooltip: '取引を追加',
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => const TransactionFormScreen()),
-              ),
+          IconButton(
+            icon: const Icon(Icons.add_circle_outline),
+            iconSize: 26,
+            tooltip: '取引を追加',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const TransactionFormScreen()),
             ),
+          ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_horiz),
             padding: const EdgeInsets.all(12),
             onSelected: (value) async {
-              if (value == 'logout') {
+              if (value == 'help') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HelpScreen()),
+                );
+              } else if (value == 'logout') {
                 await AuthService().signOut();
               }
             },
             itemBuilder: (_) => [
+              const PopupMenuItem(
+                value: 'help',
+                height: 48,
+                child: Row(
+                  children: [
+                    Icon(Icons.help_outline, size: 20),
+                    SizedBox(width: 12),
+                    Text('使い方', style: TextStyle(fontSize: 15)),
+                  ],
+                ),
+              ),
               const PopupMenuItem(
                 value: 'logout',
                 height: 48,
@@ -181,17 +197,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   label: '精算',
                 ),
               ],
-            ),
-      floatingActionButton: _selectedIndex == 1
-          ? null
-          : FloatingActionButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => const TransactionFormScreen()),
-              ),
-              elevation: 2,
-              child: const Icon(Icons.add),
             ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../services/firestore_service.dart';
 import '../../models/account.dart';
@@ -107,6 +108,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
               ),
               style: const TextStyle(fontSize: 17),
               keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               onSubmitted: (_) => Navigator.pop(ctx, true),
             ),
           ],
@@ -253,6 +255,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             ),
                             style: const TextStyle(fontSize: 17),
                             keyboardType: TextInputType.number,
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                             onSubmitted: (_) => _addAccount(),
                           ),
                           if (_assetType == AssetType.balance)

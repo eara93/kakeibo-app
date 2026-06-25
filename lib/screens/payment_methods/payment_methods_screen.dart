@@ -71,7 +71,149 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     );
     if (confirm == true) {
       await _service.deletePaymentMethod(method.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('「${method.name}」を削除しました')),
+        );
+      }
     }
+  }
+
+  Future<void> _editPaymentMethod(
+      PaymentMethod method, List<Account> accounts) async {
+    final nameCtrl = TextEditingController(text: method.name);
+    var editType = method.type;
+    var editLinkedAccountId = method.linkedAccountId;
+    var editClosingDay = method.creditSettings?.closingDay ?? 31;
+    var editPaymentDay = method.creditSettings?.paymentDay ?? 25;
+    var editMonthOffset = method.creditSettings?.paymentMonthOffset ?? 1;
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('支払方法を編集'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameCtrl,
+                  decoration: const InputDecoration(labelText: '名称'),
+                  style: const TextStyle(fontSize: 17),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<PaymentMethodType>(
+                  initialValue: editType,
+                  decoration: const InputDecoration(labelText: '種類'),
+                  items: [
+                    DropdownMenuItem(
+                        value: PaymentMethodType.cash,
+                        child: Text('現金・即時')),
+                    DropdownMenuItem(
+                        value: PaymentMethodType.creditCard,
+                        child: Text('クレジットカード')),
+                    DropdownMenuItem(
+                        value: PaymentMethodType.balancePayment,
+                        child: Text('残高払い')),
+                    DropdownMenuItem(
+                        value: PaymentMethodType.other,
+                        child: Text('その他')),
+                  ],
+                  onChanged: (v) =>
+                      setDialogState(() => editType = v!),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  initialValue:
+                      accounts.any((a) => a.id == editLinkedAccountId)
+                          ? editLinkedAccountId
+                          : null,
+                  decoration: const InputDecoration(labelText: '紐付け資産'),
+                  items: accounts
+                      .map((a) => DropdownMenuItem(
+                          value: a.id, child: Text(a.name)))
+                      .toList(),
+                  onChanged: (v) =>
+                      setDialogState(() => editLinkedAccountId = v ?? ''),
+                ),
+                if (editType == PaymentMethodType.creditCard) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: editClosingDay.toString(),
+                          decoration:
+                              const InputDecoration(labelText: '締め日'),
+                          keyboardType: TextInputType.number,
+                          onChanged: (v) =>
+                              editClosingDay = int.tryParse(v) ?? 31,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: editPaymentDay.toString(),
+                          decoration:
+                              const InputDecoration(labelText: '引落日'),
+                          keyboardType: TextInputType.number,
+                          onChanged: (v) =>
+                              editPaymentDay = int.tryParse(v) ?? 25,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<int>(
+                    initialValue: editMonthOffset,
+                    decoration:
+                        const InputDecoration(labelText: '引落月'),
+                    items: [
+                      DropdownMenuItem(value: 1, child: Text('翌月')),
+                      DropdownMenuItem(value: 2, child: Text('翌々月')),
+                    ],
+                    onChanged: (v) =>
+                        setDialogState(() => editMonthOffset = v ?? 1),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('キャンセル')),
+            FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('保存')),
+          ],
+        ),
+      ),
+    );
+
+    if (result == true && nameCtrl.text.trim().isNotEmpty) {
+      await _service.updatePaymentMethod(PaymentMethod(
+        id: method.id,
+        name: nameCtrl.text.trim(),
+        type: editType,
+        linkedAccountId: editLinkedAccountId,
+        creditSettings: editType == PaymentMethodType.creditCard
+            ? CreditSettings(
+                closingDay: editClosingDay,
+                paymentDay: editPaymentDay,
+                paymentMonthOffset: editMonthOffset,
+              )
+            : null,
+        sortOrder: method.sortOrder,
+      ));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('支払方法を更新しました')),
+        );
+      }
+    }
+    nameCtrl.dispose();
   }
 
   @override
@@ -105,7 +247,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                           child: Column(
                             children: [
                               for (int i = 0; i < methods.length; i++) ...[
-                                _buildMethodRow(methods[i], accMap),
+                                _buildMethodRow(methods[i], accMap, accounts),
                                 if (i < methods.length - 1) const Divider(),
                               ],
                             ],
@@ -230,7 +372,8 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     );
   }
 
-  Widget _buildMethodRow(PaymentMethod method, Map<String, String> accMap) {
+  Widget _buildMethodRow(
+      PaymentMethod method, Map<String, String> accMap, List<Account> accounts) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       child: Row(
@@ -259,6 +402,15 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                     ),
                   ),
               ],
+            ),
+          ),
+          SizedBox(
+            width: 44,
+            height: 44,
+            child: IconButton(
+              icon: const Icon(Icons.edit_outlined,
+                  size: 20, color: Color(0xFF8E8E93)),
+              onPressed: () => _editPaymentMethod(method, accounts),
             ),
           ),
           SizedBox(
