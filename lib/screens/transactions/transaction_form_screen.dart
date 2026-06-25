@@ -169,42 +169,17 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                     // 日付
                     GestureDetector(
                       onTap: _pickDate,
-                      child: Builder(builder: (context) {
-                        final theme = Theme.of(context);
-                        final inputTheme = theme.inputDecorationTheme;
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: '日付',
+                          suffixIcon: const Icon(Icons.calendar_today, size: 20),
+                          contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 14),
-                          decoration: BoxDecoration(
-                            color: inputTheme.fillColor,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: inputTheme.enabledBorder?.borderSide.color ??
-                                  theme.dividerColor,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('日付',
-                                      style: theme.textTheme.bodySmall),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    DateFormat('yyyy年M月d日').format(_date),
-                                    style: theme.textTheme.bodyLarge,
-                                  ),
-                                ],
-                              ),
-                              Icon(Icons.calendar_today,
-                                  size: 20,
-                                  color: theme.textTheme.bodySmall?.color),
-                            ],
-                          ),
-                        );
-                      }),
+                        ),
+                        child: Text(
+                          DateFormat('yyyy年M月d日').format(_date),
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 16),
 

@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 enum PaymentMethodType {
   cash,
   creditCard,
+  balancePayment,
   other,
 }
 
@@ -61,6 +62,9 @@ class PaymentMethod {
       case 'credit_card':
         type = PaymentMethodType.creditCard;
         break;
+      case 'balance_payment':
+        type = PaymentMethodType.balancePayment;
+        break;
       case 'other':
         type = PaymentMethodType.other;
         break;
@@ -86,6 +90,9 @@ class PaymentMethod {
       case PaymentMethodType.creditCard:
         typeStr = 'credit_card';
         break;
+      case PaymentMethodType.balancePayment:
+        typeStr = 'balance_payment';
+        break;
       case PaymentMethodType.other:
         typeStr = 'other';
         break;
@@ -108,6 +115,8 @@ class PaymentMethod {
         return '現金・即時';
       case PaymentMethodType.creditCard:
         return 'クレジットカード';
+      case PaymentMethodType.balancePayment:
+        return '残高払い';
       case PaymentMethodType.other:
         return 'その他';
     }

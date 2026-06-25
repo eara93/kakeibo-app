@@ -144,13 +144,16 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             DropdownButtonFormField<PaymentMethodType>(
               initialValue: _type,
               decoration: const InputDecoration(labelText: '種類'),
-              items: const [
+              items: [
                 DropdownMenuItem(
                     value: PaymentMethodType.cash,
                     child: Text('現金・即時')),
                 DropdownMenuItem(
                     value: PaymentMethodType.creditCard,
                     child: Text('クレジットカード')),
+                DropdownMenuItem(
+                    value: PaymentMethodType.balancePayment,
+                    child: Text('残高払い')),
                 DropdownMenuItem(
                     value: PaymentMethodType.other,
                     child: Text('その他')),
@@ -205,7 +208,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                     child: DropdownButtonFormField<int>(
                       initialValue: _paymentMonthOffset,
                       decoration: const InputDecoration(labelText: '引落月'),
-                      items: const [
+                      items: [
                         DropdownMenuItem(value: 1, child: Text('翌月')),
                         DropdownMenuItem(value: 2, child: Text('翌々月')),
                       ],

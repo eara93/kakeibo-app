@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../services/firestore_service.dart';
 import '../../models/account.dart';
+import '../../models/payment_method.dart';
 
 class AccountsScreen extends StatefulWidget {
   const AccountsScreen({super.key});
@@ -15,6 +16,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
   final _fmt = NumberFormat('#,###', 'ja_JP');
   final _nameController = TextEditingController();
   final _balanceController = TextEditingController();
+  AssetType _assetType = AssetType.bankAccount;
   bool _adding = false;
 
   @override
@@ -27,13 +29,41 @@ class _AccountsScreenState extends State<AccountsScreen> {
   Future<void> _addAccount() async {
     final name = _nameController.text.trim();
     if (name.isEmpty || _adding) return;
-    final balance = int.tryParse(_balanceController.text) ?? 0;
+    final balanceText = _balanceController.text.trim();
+    if (balanceText.isNotEmpty && int.tryParse(balanceText) == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('残高は数値で入力してください')),
+      );
+      return;
+    }
+    final balance = int.tryParse(balanceText) ?? 0;
 
     setState(() => _adding = true);
     try {
-      await _service.addAccount(Account(id: '', name: name, balance: balance));
+      await _service.addAccount(Account(
+        id: '',
+        name: name,
+        balance: balance,
+        assetType: _assetType,
+      ));
+
+      // 残高タイプの場合、支払方法を自動追加
+      if (_assetType == AssetType.balance) {
+        final accounts = await _service.getAccounts();
+        final newAccount = accounts.where((a) => a.name == name).firstOrNull;
+        if (newAccount != null) {
+          await _service.addPaymentMethod(PaymentMethod(
+            id: '',
+            name: name,
+            type: PaymentMethodType.balancePayment,
+            linkedAccountId: newAccount.id,
+          ));
+        }
+      }
+
       _nameController.clear();
-      _balanceController.text = '0';
+      _balanceController.clear();
+      setState(() => _assetType = AssetType.bankAccount);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('「$name」を追加しました')),
@@ -58,13 +88,13 @@ class _AccountsScreenState extends State<AccountsScreen> {
     final result = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('口座を編集'),
+        title: const Text('資産を編集'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameCtrl,
-              decoration: const InputDecoration(labelText: '口座名'),
+              decoration: const InputDecoration(labelText: '資産名'),
               style: const TextStyle(fontSize: 17),
               autofocus: true,
             ),
@@ -98,7 +128,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
       ));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('口座を更新しました')),
+          const SnackBar(content: Text('資産を更新しました')),
         );
       }
     }
@@ -155,7 +185,6 @@ class _AccountsScreenState extends State<AccountsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // 合計表示
                   if (accounts.isNotEmpty)
                     Card(
                       child: Padding(
@@ -189,11 +218,30 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           TextField(
                             controller: _nameController,
                             decoration: const InputDecoration(
-                              labelText: '口座名',
+                              labelText: '資産名',
                               hintText: '例: 銀行口座、PayPay',
                             ),
                             style: const TextStyle(fontSize: 17),
                             textInputAction: TextInputAction.next,
+                          ),
+                          const SizedBox(height: 12),
+                          DropdownButtonFormField<AssetType>(
+                            initialValue: _assetType,
+                            decoration:
+                                const InputDecoration(labelText: '資産種類'),
+                            items: [
+                              DropdownMenuItem(
+                                  value: AssetType.bankAccount,
+                                  child: Text('口座')),
+                              DropdownMenuItem(
+                                  value: AssetType.balance,
+                                  child: Text('残高')),
+                              DropdownMenuItem(
+                                  value: AssetType.cash,
+                                  child: Text('現金')),
+                            ],
+                            onChanged: (v) =>
+                                setState(() => _assetType = v!),
                           ),
                           const SizedBox(height: 12),
                           TextField(
@@ -206,6 +254,19 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             keyboardType: TextInputType.number,
                             onSubmitted: (_) => _addAccount(),
                           ),
+                          if (_assetType == AssetType.balance)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(
+                                '※ 支払方法「残高払い」が自動で追加されます',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primary,
+                                ),
+                              ),
+                            ),
                           const SizedBox(height: 16),
                           FilledButton(
                             onPressed: _adding ? null : _addAccount,
@@ -221,7 +282,6 @@ class _AccountsScreenState extends State<AccountsScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  // 口座一覧
                   if (accounts.isNotEmpty)
                     Card(
                       child: Column(
@@ -251,7 +311,30 @@ class _AccountsScreenState extends State<AccountsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(account.name, style: const TextStyle(fontSize: 17)),
+                Row(
+                  children: [
+                    Text(account.name, style: const TextStyle(fontSize: 17)),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        account.assetTypeLabel,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 4),
                 Text(
                   '¥${_fmt.format(account.balance)}',

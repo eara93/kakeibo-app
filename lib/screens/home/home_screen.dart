@@ -31,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   static const _titles = [
     'ダッシュボード',
     '取引一覧',
-    '口座管理',
+    '資産管理',
     '支払方法',
     'カテゴリ',
     'クレジット精算',
@@ -115,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 NavigationRailDestination(
                   icon: Icon(Icons.account_balance_outlined),
                   selectedIcon: Icon(Icons.account_balance),
-                  label: Text('口座'),
+                  label: Text('資産'),
                   padding: EdgeInsets.symmetric(vertical: 4),
                 ),
                 NavigationRailDestination(
@@ -163,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 NavigationDestination(
                   icon: Icon(Icons.account_balance_outlined),
                   selectedIcon: Icon(Icons.account_balance),
-                  label: '口座',
+                  label: '資産',
                 ),
                 NavigationDestination(
                   icon: Icon(Icons.payment_outlined),

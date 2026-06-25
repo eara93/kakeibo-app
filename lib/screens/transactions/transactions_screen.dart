@@ -242,15 +242,21 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
     final pmName = pmMap[tx.paymentMethodId]?.name ?? '';
 
+    final isSettled = tx.isProvisional && tx.settled;
+
     return Card(
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => TransactionFormScreen(transaction: tx),
-          ),
-        ),
+        onTap: isSettled
+            ? () => ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('精算済みの取引は編集できません')),
+                )
+            : () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => TransactionFormScreen(transaction: tx),
+                  ),
+                ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
@@ -327,36 +333,37 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 ],
               ),
               const SizedBox(width: 4),
-              GestureDetector(
-                onTap: () async {
-                  final confirm = await showDialog<bool>(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: const Text('削除確認'),
-                      content: const Text('この取引を削除しますか？'),
-                      actions: [
-                        TextButton(
-                            onPressed: () => Navigator.pop(ctx, false),
-                            child: const Text('キャンセル')),
-                        TextButton(
-                            onPressed: () => Navigator.pop(ctx, true),
-                            style: TextButton.styleFrom(
-                                foregroundColor: const Color(0xFFFF3B30)),
-                            child: const Text('削除')),
-                      ],
-                    ),
-                  );
-                  if (confirm == true) {
-                    await _service.deleteTransaction(tx, paymentMethods);
-                  }
-                },
-                child: const SizedBox(
-                  width: 44,
-                  height: 44,
-                  child: Icon(Icons.delete_outline,
-                      size: 20, color: Color(0xFFC7C7CC)),
+              if (!isSettled)
+                GestureDetector(
+                  onTap: () async {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('削除確認'),
+                        content: const Text('この取引を削除しますか？'),
+                        actions: [
+                          TextButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              child: const Text('キャンセル')),
+                          TextButton(
+                              onPressed: () => Navigator.pop(ctx, true),
+                              style: TextButton.styleFrom(
+                                  foregroundColor: const Color(0xFFFF3B30)),
+                              child: const Text('削除')),
+                        ],
+                      ),
+                    );
+                    if (confirm == true) {
+                      await _service.deleteTransaction(tx, paymentMethods);
+                    }
+                  },
+                  child: const SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: Icon(Icons.delete_outline,
+                        size: 20, color: Color(0xFFC7C7CC)),
+                  ),
                 ),
-              ),
             ],
           ),
         ),
