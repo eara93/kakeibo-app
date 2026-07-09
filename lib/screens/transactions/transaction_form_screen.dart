@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import '../../services/firestore_service.dart';
 import '../../models/transaction.dart' as app;
 import '../../models/account.dart';
-import '../../models/category.dart';
+import '../../models/category.dart' show Category, CategoryType;
 import '../../models/payment_method.dart';
 import '../../models/favorite.dart';
 
@@ -37,6 +37,14 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   List<PaymentMethod> _paymentMethods = [];
 
   bool get _isEditing => widget.transaction != null;
+
+  // 取引種別に合わせてカテゴリをフィルタ
+  List<Category> get _filteredCategories {
+    if (_type == app.TransactionType.income) {
+      return _categories.where((c) => c.type == CategoryType.income).toList();
+    }
+    return _categories.where((c) => c.type == CategoryType.expense).toList();
+  }
 
   // フォーム再構築用キー
   Key _formRebuildKey = UniqueKey();
@@ -333,8 +341,10 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                           ),
                         ],
                         selected: {_type},
-                        onSelectionChanged: (s) =>
-                            setState(() => _type = s.first),
+                        onSelectionChanged: (s) => setState(() {
+                          _type = s.first;
+                          _category = ''; // 種別変更時にカテゴリをリセット
+                        }),
                         style: SegmentedButton.styleFrom(
                           minimumSize: const Size(0, 44),
                         ),
@@ -359,22 +369,24 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // カテゴリ
+                      // カテゴリ（振替時は非活性）
                       DropdownButtonFormField<String>(
                         initialValue:
-                            _categories.any((c) => c.name == _category)
+                            _filteredCategories.any((c) => c.name == _category)
                                 ? _category
                                 : null,
                         decoration:
                             const InputDecoration(labelText: 'カテゴリ'),
-                        items: _categories
+                        items: _filteredCategories
                             .map((c) => DropdownMenuItem(
                                 value: c.name, child: Text(c.name)))
                             .toList(),
-                        onChanged: (v) =>
-                            setState(() => _category = v ?? ''),
+                        onChanged: _type == app.TransactionType.transfer
+                            ? null
+                            : (v) => setState(() => _category = v ?? ''),
                         validator: (v) =>
-                            v == null || v.isEmpty
+                            _type != app.TransactionType.transfer &&
+                                    (v == null || v.isEmpty)
                                 ? 'カテゴリを選択してください'
                                 : null,
                       ),

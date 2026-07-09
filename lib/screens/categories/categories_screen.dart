@@ -9,23 +9,39 @@ class CategoriesScreen extends StatefulWidget {
   State<CategoriesScreen> createState() => _CategoriesScreenState();
 }
 
-class _CategoriesScreenState extends State<CategoriesScreen> {
+class _CategoriesScreenState extends State<CategoriesScreen>
+    with SingleTickerProviderStateMixin {
   final _service = FirestoreService();
   final _nameController = TextEditingController();
+  late final TabController _tabController;
   bool _adding = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
+
+  CategoryType get _currentType =>
+      _tabController.index == 0 ? CategoryType.expense : CategoryType.income;
 
   Future<void> _addCategory() async {
     final name = _nameController.text.trim();
     if (name.isEmpty || _adding) return;
     setState(() => _adding = true);
     try {
-      await _service.addCategory(Category(id: '', name: name));
+      await _service.addCategory(Category(
+        id: '',
+        name: name,
+        type: _currentType,
+      ));
       _nameController.clear();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -71,6 +87,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       await _service.updateCategory(Category(
         id: category.id,
         name: controller.text.trim(),
+        type: category.type,
         sortOrder: category.sortOrder,
       ));
       if (mounted) {
@@ -111,127 +128,157 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     }
   }
 
+  Widget _buildCategoryList(List<Category> categories) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // 追加フォーム
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _nameController,
+                          decoration: const InputDecoration(
+                            labelText: 'カテゴリ名',
+                            hintText: '例: 食費、交通費',
+                          ),
+                          style: const TextStyle(fontSize: 17),
+                          textInputAction: TextInputAction.done,
+                          onSubmitted: (_) => _addCategory(),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      FilledButton(
+                        onPressed: _adding ? null : _addCategory,
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(80, 50),
+                        ),
+                        child: _adding
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2))
+                            : const Text('追加'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              // カテゴリ一覧
+              if (categories.isNotEmpty)
+                Card(
+                  child: Column(
+                    children: [
+                      for (int i = 0; i < categories.length; i++) ...[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 14),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(categories[i].name,
+                                    style: const TextStyle(fontSize: 17)),
+                              ),
+                              SizedBox(
+                                width: 44,
+                                height: 44,
+                                child: IconButton(
+                                  icon: const Icon(Icons.edit_outlined,
+                                      size: 20,
+                                      color: Color(0xFF8E8E93)),
+                                  onPressed: () =>
+                                      _editCategory(categories[i]),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 44,
+                                height: 44,
+                                child: IconButton(
+                                  icon: const Icon(
+                                      Icons.delete_outline,
+                                      size: 20,
+                                      color: Color(0xFFC7C7CC)),
+                                  onPressed: () =>
+                                      _deleteCategory(categories[i]),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (i < categories.length - 1)
+                          const Padding(
+                            padding: EdgeInsets.only(left: 20),
+                            child: Divider(),
+                          ),
+                      ],
+                    ],
+                  ),
+                ),
+              if (categories.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Center(
+                    child: Text('カテゴリを追加してください',
+                        style: TextStyle(
+                            fontSize: 15, color: Colors.grey[500])),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<Category>>(
-      stream: _service.watchCategories(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    return Column(
+      children: [
+        TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: '支出カテゴリ'),
+            Tab(text: '収入カテゴリ'),
+          ],
+          onTap: (_) {
+            // タブ切り替え時に入力欄をリセット
+            _nameController.clear();
+          },
+        ),
+        Expanded(
+          child: StreamBuilder<List<Category>>(
+            stream: _service.watchCategories(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              final all = snapshot.data!;
+              final expenseList =
+                  all.where((c) => c.type == CategoryType.expense).toList();
+              final incomeList =
+                  all.where((c) => c.type == CategoryType.income).toList();
 
-        final categories = snapshot.data!;
-
-        return SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 600),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+              return TabBarView(
+                controller: _tabController,
                 children: [
-                  // 追加フォーム
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _nameController,
-                              decoration: const InputDecoration(
-                                labelText: 'カテゴリ名',
-                                hintText: '例: 食費、交通費',
-                              ),
-                              style: const TextStyle(fontSize: 17),
-                              textInputAction: TextInputAction.done,
-                              onSubmitted: (_) => _addCategory(),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          FilledButton(
-                            onPressed: _adding ? null : _addCategory,
-                            style: FilledButton.styleFrom(
-                              minimumSize: const Size(80, 50),
-                            ),
-                            child: _adding
-                                ? const SizedBox(
-                                    width: 20, height: 20,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2))
-                                : const Text('追加'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // カテゴリ一覧
-                  if (categories.isNotEmpty)
-                    Card(
-                      child: Column(
-                        children: [
-                          for (int i = 0; i < categories.length; i++) ...[
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 14),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(categories[i].name,
-                                        style:
-                                            const TextStyle(fontSize: 17)),
-                                  ),
-                                  SizedBox(
-                                    width: 44,
-                                    height: 44,
-                                    child: IconButton(
-                                      icon: const Icon(Icons.edit_outlined,
-                                          size: 20,
-                                          color: Color(0xFF8E8E93)),
-                                      onPressed: () =>
-                                          _editCategory(categories[i]),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 44,
-                                    height: 44,
-                                    child: IconButton(
-                                      icon: const Icon(
-                                          Icons.delete_outline,
-                                          size: 20,
-                                          color: Color(0xFFC7C7CC)),
-                                      onPressed: () =>
-                                          _deleteCategory(categories[i]),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (i < categories.length - 1)
-                              const Padding(
-                                padding: EdgeInsets.only(left: 20),
-                                child: Divider(),
-                              ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  if (categories.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Center(
-                        child: Text('カテゴリを追加してください',
-                            style: TextStyle(
-                                fontSize: 15, color: Colors.grey[500])),
-                      ),
-                    ),
+                  _buildCategoryList(expenseList),
+                  _buildCategoryList(incomeList),
                 ],
-              ),
-            ),
+              );
+            },
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 }
