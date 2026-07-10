@@ -276,7 +276,11 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      tx.itemName.isNotEmpty ? tx.itemName : tx.category,
+                      tx.itemName.isNotEmpty
+                          ? tx.itemName
+                          : tx.type == app.TransactionType.transfer
+                              ? '振替'
+                              : tx.category,
                       style: const TextStyle(fontSize: 15, height: 1.3),
                       overflow: TextOverflow.ellipsis,
                     ),
