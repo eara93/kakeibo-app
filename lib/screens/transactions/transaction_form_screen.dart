@@ -369,27 +369,24 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // カテゴリ（振替時は非活性）
-                      DropdownButtonFormField<String>(
-                        initialValue:
-                            _filteredCategories.any((c) => c.name == _category)
-                                ? _category
-                                : null,
-                        decoration:
-                            const InputDecoration(labelText: 'カテゴリ'),
-                        items: _filteredCategories
-                            .map((c) => DropdownMenuItem(
-                                value: c.name, child: Text(c.name)))
-                            .toList(),
-                        onChanged: _type == app.TransactionType.transfer
-                            ? null
-                            : (v) => setState(() => _category = v ?? ''),
-                        validator: (v) =>
-                            _type != app.TransactionType.transfer &&
-                                    (v == null || v.isEmpty)
-                                ? 'カテゴリを選択してください'
-                                : null,
-                      ),
+                      // カテゴリ（振替以外）
+                      if (_type != app.TransactionType.transfer)
+                        DropdownButtonFormField<String>(
+                          initialValue:
+                              _filteredCategories.any((c) => c.name == _category)
+                                  ? _category
+                                  : null,
+                          decoration:
+                              const InputDecoration(labelText: 'カテゴリ'),
+                          items: _filteredCategories
+                              .map((c) => DropdownMenuItem(
+                                  value: c.name, child: Text(c.name)))
+                              .toList(),
+                          onChanged: (v) => setState(() => _category = v ?? ''),
+                          validator: (v) => v == null || v.isEmpty
+                              ? 'カテゴリを選択してください'
+                              : null,
+                        ),
                       const SizedBox(height: 16),
 
                       // 金額
